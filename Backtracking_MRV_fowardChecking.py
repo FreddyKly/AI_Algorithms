@@ -1,4 +1,11 @@
 
+class TwoTwoFourConstraint():
+    def __init__(self, variables) -> None:
+        self.variables = variables
+
+        def satisfied(self, assignment):
+            pass
+
 class CSP():
     def __init__(self, variables, domains, constraints):
         self.variables = variables
@@ -9,22 +16,23 @@ class CSP():
             if variable not in self.domains:
                 raise LookupError("Every variable should habe a domain")
 
+    def consistent(self, variable, assignment):
+        for costraint in self.constraints[variable]:
+            if not costraint.satisfied(assignment):
+                return False
+        return True
 
-
-    def backtracking():
-        solution = ""
+    def backtracking(self, assignment):
+        if len(assignment) == len(self.variables):
+            return assignment
         
-
-        return solution
-
-    def solve():
-        #"TWO" + "TWO" = "FOUR"
-        null
     
     def add_constraint(self, constraint):
         for variable in constraint.variables:
             if variable not in self.variables:
                 raise LookupError("Variable not in CSP")
+            else:
+                self.constraints[variable].append(constraint)
 
 
 if __name__ == "__main__":
