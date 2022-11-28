@@ -13,17 +13,18 @@ class Perceptron():
         0x7: [1,1,-1,1,-1,-1,1,-1],      # 7
         0x8: [1,1,1,1,1,1,1,1],          # 8 
         0x9: [1,1,1,1,1,-1,1,1],         # 9
-        0xA: [1,1,1,1,1,1,1,-1],         # A
-        0xB: [1,-1,1,-1,1,1,1,1],        # B
-        0xC: [1,-1,-1,1,1,1,-1,1],       # C
-        0xD: [1,-1,-1,1,1,1,1,1],        # D
-        0xE: [1,1,1,-1,1,1,-1,1],        # E
-        0xF: [1,1,1,-1,1,1,-1,-1]        # F
+        # 0xA: [1,1,1,1,1,1,1,-1],         # A
+        # 0xB: [1,-1,1,-1,1,1,1,1],        # B
+        # 0xC: [1,-1,-1,1,1,1,-1,1],       # C
+        # 0xD: [1,-1,-1,1,1,1,1,1],        # D
+        # 0xE: [1,1,1,-1,1,1,-1,1],        # E
+        # 0xF: [1,1,1,-1,1,1,-1,-1]        # F
     }      
 
     a_learning_rate = 0.05
     number_of_features = 8
     w_weights = np.random.randint(np.arange(0, number_of_features), number_of_features)/10
+    weigths_are_correct = False
 
     def get_train_sample(self):
         rand_int = random.randrange(0,8,1)
@@ -32,8 +33,8 @@ class Perceptron():
         return x_input, tq_target_value
 
 
-    def sign_fct(self, inputs, weights):
-        weighted_sum = np.dot(inputs, weights)
+    def sign_fct(self, inputs):
+        weighted_sum = np.dot(inputs, self.w_weights)
         return 1 if weighted_sum > 0 else -1
 
 
@@ -42,14 +43,29 @@ class Perceptron():
         self.w_weights = self.w_weights + self.a_learning_rate * deltaW_weight_change
         print(self.w_weights)
 
+    def are_weights_correct(self):
+        for digit, input in self.digit_codes.items():
+            tq_target_value = -1 if digit % 2 else 1
+            y_pred_output = self.sign_fct(input)
+            if tq_target_value != y_pred_output:
+                self.adapt_weights(np.asarray(input), tq_target_value, y_pred_output)
+                return False
+        print("Correct weights were found: ", self.w_weights)
+        return True
+
     def learn(self):
-        weigths_are_not_correct = False
-        while not weigths_are_not_correct:
+        iteration = 0
+        while not self.weigths_are_correct:
+            iteration += 1
+            print("iteration: ", iteration)
             x_input, tq_target_value = self.get_train_sample()
-            y_pred_output = self.sign_fct(x_input, self.w_weights)
+            y_pred_output = self.sign_fct(x_input)
             if y_pred_output != tq_target_value:
                 self.adapt_weights(x_input, tq_target_value, y_pred_output)
+            else:
+                self.weigths_are_correct = self.are_weights_correct()
 
 if __name__ == "__main__":
     perceptron = Perceptron()
     perceptron.learn()
+    print("Done!")
