@@ -1,4 +1,5 @@
 import random
+import time
 
 num_white_pieces = 9 # pieces that have not been played 
 num_black_pieces = 9
@@ -21,7 +22,8 @@ white_positions = []
 black_positions = []
 
 def AI_turn():
-    ai_turn_pos = random.randint(0, len(possible_positions))
+    ai_turn_pos = MCTS() 
+    random.randint(0, len(possible_positions))
     possible_positions.pop(ai_turn_pos)
 
 def Human_turn():
@@ -48,8 +50,20 @@ def is_mill(positions):
     return any(set(tuple).issubset(positions) for tuple in mill_positions)
     
 
-def MCTS():
-    pass 
+class MCTS():
+    def play_round():
+        root = Node(None, possible_positions)
+        while time.time() + 5 > time.time():
+            leaf = root.selectNode()
+            child = leaf.expand()
+            result = child.simulate()
+
+
+
+class Node():
+    def __init__(self, parent, children) -> None:
+        self.parent = parent
+        self.children = children
 
 if __name__ == "__main__":
     print("You will be playing Nine Men's Morris as White against a AI powered by MCTS!")
