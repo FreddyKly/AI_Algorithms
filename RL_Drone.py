@@ -22,7 +22,17 @@ START_POSITION = (4, 12)
 GOAL_STATE = (13, 11)
 
 # Define the obstacle positions
-OBSTACLES = [(0, 0), (7, 7), (10, 5)]
+OBSTACLES = []
+for i in range(16):
+    OBSTACLES.append((0, i))
+for i in range(16):
+    OBSTACLES.append((15, i))
+for i in range(1, 15):
+    OBSTACLES.append((i, 0))
+for i in range(1, 15):
+    OBSTACLES.append((0, i))
+
+# OBSTACLES = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]
 
 # Define the possible actions
 ACTIONS = ['N', 'S', 'W', 'O']
@@ -113,3 +123,26 @@ for episode in range(NUM_EPISODES):
     
     # Print the total reward for the episode
     print(f"Episode {episode + 1}: Total Reward = {total_reward}")
+
+# Evaluate the learned policy
+state = START_POSITION
+path = [state]
+while state != GOAL_STATE:
+    action = ACTIONS[np.argmax(q_table[state])]
+    
+    if action == 'up':
+        next_state = (state[0], state[1] - 1) if state[1] > 0 else state
+    elif action == 'down':
+        next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
+    elif action == 'left':
+        next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
+    elif action == 'right':
+        next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+    
+    state = next_state
+    path.append(state)
+
+# Print the optimal path
+print("Optimal Path:")
+for position in path:
+    print(position)
