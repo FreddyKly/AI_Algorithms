@@ -5,6 +5,7 @@ GRID_SIZE = 16
 
 # Define the rewards for reaching the goal state and obstacles
 OBSTACLE_COST = 1000
+GOAL_REWARD = 100
 
 # Define the learning rate
 LEARNING_RATE = 0.1
@@ -40,8 +41,6 @@ ACTIONS = ['N', 'S', 'W', 'O']
 # Initialize the Q-table with zeros
 q_table = np.zeros((GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 
-print(q_table.shape)
-
 # Function to choose an action based on the Q-values
 def choose_action(state, epsilon):
     if np.random.uniform(0, 1) < epsilon:
@@ -55,8 +54,8 @@ def choose_action(state, epsilon):
 # Function to update the Q-values
 def update_q_table(state, action, reward, next_state):
     min_next_q = np.min(q_table[next_state])
-    current_q = q_table[state][action] 
-    q_table[state][action] = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward + DISCOUNT_FACTOR * min_next_q)
+    current_q = q_table[state[0]][state[1]][action] 
+    q_table[state][action] = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward * min_next_q)
 
 # Run Q-learning algorithm
 for episode in range(NUM_EPISODES):
@@ -82,9 +81,9 @@ for episode in range(NUM_EPISODES):
         if next_state == GOAL_STATE:
             reward = GOAL_REWARD
         elif next_state in OBSTACLES:
-            reward = -OBSTACLE_COST
+            reward = OBSTACLE_COST
         else:
-            reward = -1
+            reward = 1
         
         # Update the Q-values
         update_q_table(state, action, reward, next_state)
