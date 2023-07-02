@@ -7,11 +7,8 @@ GRID_SIZE = 16
 OBSTACLE_COST = 1000
 GOAL_COST = -100
 
-# Define the learning rate
-LEARNING_RATE = 0.1
-
 # Define the number of episodes
-NUM_EPISODES = 10
+NUM_EPISODES = 1000
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -82,11 +79,11 @@ def update_q_table(state, action, cost, next_state):
 
     # Update learning rate
     update_counts[idx_state][idx_action] += 1
-    LEARNING_RATE = 1 / update_counts[idx_state][idx_action]
+    learning_rate = 1 / update_counts[idx_state][idx_action]
 
-    print("q-value: ", (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (cost * min_next_q))
+    new_q_value = (1 - learning_rate) * current_q + learning_rate * (cost + min_next_q)
     # Assign new q-value
-    q_table[idx_state][idx_action] = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (cost + min_next_q)
+    q_table[idx_state][idx_action] = new_q_value
 
 # Map state to a unique index, corresponding to it's x and y value
 def map_state_to_index(state):
@@ -123,6 +120,7 @@ for episode in range(NUM_EPISODES):
         elif next_state in OBSTACLES:
             # If drone hits obstacle, cost of 1000 and end of episode
             cost = OBSTACLE_COST
+            total_cost += cost
             update_q_table(state, action, cost, next_state)
             break
         else:
