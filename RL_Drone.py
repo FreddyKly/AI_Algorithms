@@ -25,13 +25,29 @@ GOAL_STATE = (13, 11)
 # Define the obstacle positions
 OBSTACLES = []
 for i in range(16):
+    # Top and bottom row
     OBSTACLES.append((0, i))
-for i in range(16):
     OBSTACLES.append((15, i))
 for i in range(1, 15):
+    # Left and right row
     OBSTACLES.append((i, 0))
-for i in range(1, 15):
     OBSTACLES.append((0, i))
+for i in range(7, 15):
+    # Bottom rectangle from (7, 13) til (14, 14)
+    OBSTACLES.append((i, 13))
+    OBSTACLES.append((i, 14))
+for i in range(7, 11):
+    # mid rectangle from (7, 8) til (10, 12)
+    OBSTACLES.append((i, 12))
+    OBSTACLES.append((i, 11))
+    OBSTACLES.append((i, 10))
+    OBSTACLES.append((i, 9))
+    OBSTACLES.append((i, 8))
+for i in range (7, 10):
+    # Top rectangle from (7, 6) til (9, 7)
+    OBSTACLES.append((i, 7))
+    OBSTACLES.append((i, 6))
+    
 
 # OBSTACLES = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]
 
