@@ -3,15 +3,15 @@ import numpy as np
 # Define the environment size
 GRID_SIZE = 16
 
-# Define the rewards for reaching the goal state and obstacles
+# Define the costs for reaching the goal state and obstacles
 OBSTACLE_COST = 1000
-GOAL_REWARD = 100
+GOAL_COST = -100
 
 # Define the learning rate
 LEARNING_RATE = 0.1
 
 # Define the number of episodes
-NUM_EPISODES = 1000
+NUM_EPISODES = 10
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -55,6 +55,9 @@ ACTIONS = ['N', 'S', 'W', 'O']
 # Initialize the Q-table with zeros
 q_table = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
 
+# Create an np-array of same size to track how often the q-value was updated
+update_counts = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
+
 # Function to choose an action based on the Q-values
 def choose_action(state, epsilon):
     if np.random.uniform(0, 1) < epsilon:
@@ -67,13 +70,23 @@ def choose_action(state, epsilon):
     return action
 
 # Function to update the Q-values
-def update_q_table(state, action, reward, next_state):
+def update_q_table(state, action, cost, next_state):
+    # Get indeces
     idx_state = map_state_to_index(state)
     idx_next_state = map_state_to_index(next_state)
     idx_action = ACTIONS.index(action)
+    # Get minimal q-value for the next state
     min_next_q = np.min(q_table[idx_next_state])
-    current_q = q_table[idx_state][idx_action] 
-    q_table[idx_state][idx_action] = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward * min_next_q)
+    # Get the q-value of the current state
+    current_q = q_table[idx_state][idx_action]
+
+    # Update learning rate
+    update_counts[idx_state][idx_action] += 1
+    LEARNING_RATE = 1 / update_counts[idx_state][idx_action]
+
+    print("q-value: ", (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (cost * min_next_q))
+    # Assign new q-value
+    q_table[idx_state][idx_action] = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (cost + min_next_q)
 
 # Map state to a unique index, corresponding to it's x and y value
 def map_state_to_index(state):
@@ -85,14 +98,14 @@ def map_state_to_index(state):
 # Run Q-learning algorithm
 for episode in range(NUM_EPISODES):
     state = START_POSITION
-    total_reward = 0
+    total_cost = 0
     
     for step in range(MAX_STEPS):
         epsilon = (1 / (episode + 1))  # Decrease exploration rate over time
         
         action = choose_action(state, epsilon)
         
-        # Perform the chosen action and observe the next state and reward
+        # Perform the chosen action and observe the next state and cost
         if action == 'N':
             next_state = (state[0], state[1] - 1) if state[1] > 0 else state
         elif action == 'S':
@@ -104,18 +117,21 @@ for episode in range(NUM_EPISODES):
         print(next_state)
 
         
-        # Assign a reward based on the next state
+        # Assign a cost based on the next state
         if next_state == GOAL_STATE:
-            reward = GOAL_REWARD
+            cost = GOAL_COST
         elif next_state in OBSTACLES:
-            reward = OBSTACLE_COST
+            # If drone hits obstacle, cost of 1000 and end of episode
+            cost = OBSTACLE_COST
+            update_q_table(state, action, cost, next_state)
+            break
         else:
-            reward = 1
+            cost = 1
         
         # Update the Q-values
-        update_q_table(state, action, reward, next_state)
+        update_q_table(state, action, cost, next_state)
         
-        total_reward += reward
+        total_cost += cost
         state = next_state
         
         if state == GOAL_STATE:
@@ -133,12 +149,12 @@ for episode in range(NUM_EPISODES):
                     next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
                 
                 if next_state == START_POSITION:
-                    reward = GOAL_REWARD
+                    cost = GOAL_COST
                 else:
-                    reward = -1
+                    cost = -1
                 
-                update_q_table(state, action, reward, next_state)
-                total_reward += reward
+                update_q_table(state, action, cost, next_state)
+                total_cost += cost
                 state = next_state
                 
                 if state == START_POSITION:
@@ -147,28 +163,30 @@ for episode in range(NUM_EPISODES):
         if state == START_POSITION:
             break
     
-    # Print the total reward for the episode
-    print(f"Episode {episode + 1}: Total Reward = {total_reward}")
-
-# Evaluate the learned policy
-state = START_POSITION
-path = [state]
-while state != GOAL_STATE:
-    action = ACTIONS[np.argmax(q_table[state])]
+    # Print the total cost for the episode
+    print(f"Episode {episode + 1}: Total cost = {total_cost}")
+with np.printoptions(threshold=np.inf):
+    print(q_table)
+# # Evaluate the learned policy
+# state = START_POSITION
+# path = [state]
+# while state != GOAL_STATE:
+#     idx_state = map_state_to_index(state)
+#     action = ACTIONS[np.argmax(q_table[idx_state])]
     
-    if action == 'up':
-        next_state = (state[0], state[1] - 1) if state[1] > 0 else state
-    elif action == 'down':
-        next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
-    elif action == 'left':
-        next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
-    elif action == 'right':
-        next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+#     if action == 'up':
+#         next_state = (state[0], state[1] - 1) if state[1] > 0 else state
+#     elif action == 'down':
+#         next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
+#     elif action == 'left':
+#         next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
+#     elif action == 'right':
+#         next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
     
-    state = next_state
-    path.append(state)
+#     state = next_state
+#     path.append(state)
 
-# Print the optimal path
-print("Optimal Path:")
-for position in path:
-    print(position)
+# # Print the optimal path
+# print("Optimal Path:")
+# for position in path:
+#     print(position)
