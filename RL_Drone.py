@@ -49,13 +49,11 @@ for i in range (7, 10):
     OBSTACLES.append((i, 6))
     
 
-# OBSTACLES = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]
-
 # Define the possible actions
 ACTIONS = ['N', 'S', 'W', 'O']
 
 # Initialize the Q-table with zeros
-q_table = np.zeros((GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+q_table = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
 
 # Function to choose an action based on the Q-values
 def choose_action(state, epsilon):
@@ -72,6 +70,12 @@ def update_q_table(state, action, reward, next_state):
     min_next_q = np.min(q_table[next_state])
     current_q = q_table[state[0]][state[1]][action] 
     q_table[state][action] = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward * min_next_q)
+
+# Map state to a unique index, corresponding to it's x and y value
+def map_state_to_index(state):
+    x, y = state
+    index = y * GRID_SIZE + x
+    return index
 
 # Run Q-learning algorithm
 for episode in range(NUM_EPISODES):
@@ -92,6 +96,7 @@ for episode in range(NUM_EPISODES):
             next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
         elif action == 'O':
             next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+        print(next_state)
         
         # Assign a reward based on the next state
         if next_state == GOAL_STATE:
