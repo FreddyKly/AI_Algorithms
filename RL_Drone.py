@@ -62,19 +62,24 @@ def choose_action(state, epsilon):
         action = np.random.choice(ACTIONS)
     else:
         # Exploit: choose the action with the lowest Q-value
-        action = ACTIONS[np.argmin(q_table[state])]
+        idx_state = map_state_to_index(state)
+        action = ACTIONS[np.argmin(q_table[idx_state])]
     return action
 
 # Function to update the Q-values
 def update_q_table(state, action, reward, next_state):
-    min_next_q = np.min(q_table[next_state])
-    current_q = q_table[state[0]][state[1]][action] 
-    q_table[state][action] = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward * min_next_q)
+    idx_state = map_state_to_index(state)
+    idx_next_state = map_state_to_index(next_state)
+    idx_action = ACTIONS.index(action)
+    min_next_q = np.min(q_table[idx_next_state])
+    current_q = q_table[idx_state][idx_action] 
+    q_table[idx_state][idx_action] = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward * min_next_q)
 
 # Map state to a unique index, corresponding to it's x and y value
 def map_state_to_index(state):
     x, y = state
     index = y * GRID_SIZE + x
+    # print("state: ", state, "index: ", index)
     return index
 
 # Run Q-learning algorithm
@@ -97,6 +102,7 @@ for episode in range(NUM_EPISODES):
         elif action == 'O':
             next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
         print(next_state)
+
         
         # Assign a reward based on the next state
         if next_state == GOAL_STATE:
