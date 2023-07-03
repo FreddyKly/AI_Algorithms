@@ -81,8 +81,8 @@ def update_q_table(state, action, cost, next_state):
 
     # Update learning rate
     update_counts[idx_state][idx_action] += 1
-    learning_rate = 1 / update_counts[idx_state][idx_action]
-    # learning_rate = 0.7 # Wegen deterministischer Umgebung?
+    # learning_rate = 1 / update_counts[idx_state][idx_action]
+    learning_rate = 0.7 # Wegen deterministischer Umgebung?
 
     new_q_value = (1 - learning_rate) * current_q + learning_rate * (cost + min_next_q)
     # Assign new q-value
@@ -111,16 +111,6 @@ table = plt.table(cellText=np.round(min_q_values, 2),
 table.set_fontsize(18)
 ax.axis('off')
 plt.title('Minimum Q-values')
-start_x = 4
-# For whatever reason this has to be +1
-start_y = 13
-goal_x = 13
-# For whatever reason this has to be +1
-goal_y = 12
-start_cell = table[start_y, start_x]
-goal_cell = table[goal_y, goal_x]
-start_cell.set_facecolor("lightblue")
-goal_cell.set_facecolor("lightblue")
 
 plt.show()
 
@@ -208,6 +198,18 @@ for episode in range(NUM_EPISODES):
                     cellColours=colours)
     ax.clear()
     ax.add_table(table)
+    ax.axis('off')
+    plt.title('Minimum Q-values')
+    start_x = 4
+    # For whatever reason this has to be +1
+    start_y = 13
+    goal_x = 13
+    # For whatever reason this has to be +1
+    goal_y = 12
+    start_cell = table[start_y, start_x]
+    goal_cell = table[goal_y, goal_x]
+    start_cell.set_facecolor("lightblue")
+    goal_cell.set_facecolor("lightblue")
     # fig.canvas.draw()
     fig.canvas.flush_events()
     time.sleep(.05)
