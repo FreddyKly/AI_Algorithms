@@ -6,7 +6,7 @@ GRID_SIZE = 16
 
 # Define the costs for reaching the goal state and obstacles
 OBSTACLE_COST = 1000
-GOAL_COST = -100
+GOAL_COST = 0
 
 # Define the number of episodes
 NUM_EPISODES = 1000
@@ -81,6 +81,7 @@ def update_q_table(state, action, cost, next_state):
     # Update learning rate
     update_counts[idx_state][idx_action] += 1
     learning_rate = 1 / update_counts[idx_state][idx_action]
+    # learning_rate = 0.7 # Wegen deterministischer Umgebung?
 
     new_q_value = (1 - learning_rate) * current_q + learning_rate * (cost + min_next_q)
     # Assign new q-value
@@ -112,7 +113,6 @@ for episode in range(NUM_EPISODES):
             next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
         elif action == 'O':
             next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
-        print(next_state)
 
         
         # Assign a cost based on the next state
@@ -132,6 +132,8 @@ for episode in range(NUM_EPISODES):
         
         total_cost += cost
         state = next_state
+        # if episode == 100:
+        #     print(episode)
 
         if state == GOAL_STATE:
             break
@@ -166,7 +168,7 @@ for episode in range(NUM_EPISODES):
         #     break
     
     # Print the total cost for the episode
-    print(f"Episode {episode + 1}: Total cost = {total_cost}")
+    # print(f"Episode {episode + 1}: Total cost = {total_cost}")
 with np.printoptions(threshold=np.inf):
     print(q_table)
 
@@ -190,6 +192,18 @@ table = plt.table(cellText=np.round(min_q_values, 2),
 table.set_fontsize(18)
 ax.axis('off')
 plt.title('Minimum Q-values')
+
+start_x = 4
+# For whatever reason this has to be +1
+start_y = 13
+goal_x = 13
+# For whatever reason this has to be +1
+goal_y = 12
+start_cell = table[start_y, start_x]
+goal_cell = table[goal_y, goal_x]
+start_cell.set_facecolor("lightblue")
+goal_cell.set_facecolor("lightblue")
+
 plt.show()
 
 # # Evaluate the learned policy
