@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 # Define the environment size
 GRID_SIZE = 16
@@ -22,13 +23,13 @@ GOAL_STATE = (13, 11)
 # Define the obstacle positions
 OBSTACLES = []
 for i in range(16):
-    # Top and bottom row
+    # Left and right row
     OBSTACLES.append((0, i))
     OBSTACLES.append((15, i))
 for i in range(1, 15):
-    # Left and right row
+    # Top and bottom row
     OBSTACLES.append((i, 0))
-    OBSTACLES.append((0, i))
+    OBSTACLES.append((i, 15))
 for i in range(7, 15):
     # Bottom rectangle from (7, 13) til (14, 14)
     OBSTACLES.append((i, 13))
@@ -131,40 +132,98 @@ for episode in range(NUM_EPISODES):
         
         total_cost += cost
         state = next_state
-        
+
         if state == GOAL_STATE:
-            # Agent has reached the goal, update Q-values for returning to the start
-            for _ in range(MAX_STEPS):
-                action = choose_action(state, epsilon)
-                
-                if action == 'up':
-                    next_state = (state[0], state[1] - 1) if state[1] > 0 else state
-                elif action == 'down':
-                    next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
-                elif action == 'left':
-                    next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
-                elif action == 'right':
-                    next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
-                
-                if next_state == START_POSITION:
-                    cost = GOAL_COST
-                else:
-                    cost = -1
-                
-                update_q_table(state, action, cost, next_state)
-                total_cost += cost
-                state = next_state
-                
-                if state == START_POSITION:
-                    break
-        
-        if state == START_POSITION:
             break
+        
+        # if state == GOAL_STATE:
+        #     # Agent has reached the goal, update Q-values for returning to the start
+        #     for _ in range(MAX_STEPS):
+        #         action = choose_action(state, epsilon)
+                
+        #         if action == 'up':
+        #             next_state = (state[0], state[1] - 1) if state[1] > 0 else state
+        #         elif action == 'down':
+        #             next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
+        #         elif action == 'left':
+        #             next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
+        #         elif action == 'right':
+        #             next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+                
+        #         if next_state == START_POSITION:
+        #             cost = GOAL_COST
+        #         else:
+        #             cost = -1
+                
+        #         update_q_table(state, action, cost, next_state)
+        #         total_cost += cost
+        #         state = next_state
+                
+        #         if state == START_POSITION:
+        #             break
+        
+        # if state == START_POSITION:
+        #     break
     
     # Print the total cost for the episode
     print(f"Episode {episode + 1}: Total cost = {total_cost}")
 with np.printoptions(threshold=np.inf):
     print(q_table)
+
+x_labels = [str(i) for i in range(GRID_SIZE)]
+y_labels = [str(i) for i in range(GRID_SIZE)]
+
+
+q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+
+# max_q_values = np.min(q_values, axis=2)
+
+# # Create a meshgrid of x and y coordinates
+# x, y = np.meshgrid(range(GRID_SIZE), range(GRID_SIZE))
+
+# # Plot the Q-values as a heatmap
+# plt.figure(figsize=(8, 6))
+# plt.pcolormesh(x, y, max_q_values, cmap='hot')
+# plt.colorbar(label='Max Q-value')
+# plt.xticks(np.arange(GRID_SIZE) + 0.5, x_labels)
+# plt.yticks(np.arange(GRID_SIZE) + 0.5, y_labels)
+# plt.xlabel('X-coordinate')
+# plt.ylabel('Y-coordinate')
+# plt.title('Q-table Heatmap')
+# plt.grid(True, linewidth=0.5, color='black', linestyle='-')
+# plt.show()
+
+# plt.tight_layout()
+# plt.show()
+
+min_q_values = np.min(q_values, axis=2)
+
+# Create a figure and axes
+fig, ax = plt.subplots(figsize=(8, 6))
+
+norm = plt.Normalize(np.round(min_q_values, 2).min()-1, np.round(min_q_values, 2).max()+1)
+colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
+
+# Create a table to display the minimum Q-values
+table = plt.table(cellText=np.round(min_q_values, 2),
+                  cellLoc='center',
+                  loc='center',
+                  colLabels=[str(i) for i in range(GRID_SIZE)],
+                  rowLabels=[str(i) for i in range(GRID_SIZE)],
+                  cellColours=colours)
+
+# Set the font size for the table
+table.set_fontsize(14)
+
+# Hide the axis labels and ticks
+ax.axis('off')
+
+# Set the title of the table
+plt.title('Minimum Q-values')
+
+# Display the table
+plt.show()
+
 # # Evaluate the learned policy
 # state = START_POSITION
 # path = [state]
