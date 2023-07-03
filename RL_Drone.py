@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import time
 
 # Define the environment size
 GRID_SIZE = 16
@@ -9,7 +10,7 @@ OBSTACLE_COST = 1000
 GOAL_COST = 0
 
 # Define the number of episodes
-NUM_EPISODES = 1000
+NUM_EPISODES = 100
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -94,6 +95,35 @@ def map_state_to_index(state):
     # print("state: ", state, "index: ", index)
     return index
 
+plt.ion()
+q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+min_q_values = np.min(q_values, axis=2)
+
+norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
+colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
+fig, ax = plt.subplots(figsize=(8, 6))
+table = plt.table(cellText=np.round(min_q_values, 2),
+                    cellLoc='center',
+                    loc='center',
+                    colLabels=[str(i) for i in range(GRID_SIZE)],
+                    rowLabels=[str(i) for i in range(GRID_SIZE)],
+                    cellColours=colours)
+table.set_fontsize(18)
+ax.axis('off')
+plt.title('Minimum Q-values')
+start_x = 4
+# For whatever reason this has to be +1
+start_y = 13
+goal_x = 13
+# For whatever reason this has to be +1
+goal_y = 12
+start_cell = table[start_y, start_x]
+goal_cell = table[goal_y, goal_x]
+start_cell.set_facecolor("lightblue")
+goal_cell.set_facecolor("lightblue")
+
+plt.show()
+
 # Run Q-learning algorithm
 for episode in range(NUM_EPISODES):
     state = START_POSITION
@@ -114,7 +144,7 @@ for episode in range(NUM_EPISODES):
         elif action == 'O':
             next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
 
-        
+
         # Assign a cost based on the next state
         if next_state == GOAL_STATE:
             cost = GOAL_COST
@@ -132,8 +162,6 @@ for episode in range(NUM_EPISODES):
         
         total_cost += cost
         state = next_state
-        # if episode == 100:
-        #     print(episode)
 
         if state == GOAL_STATE:
             break
@@ -167,8 +195,25 @@ for episode in range(NUM_EPISODES):
         # if state == START_POSITION:
         #     break
     
+    q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+    min_q_values = np.min(q_values, axis=2)
+
+    norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
+    colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
+    table = plt.table(cellText=np.round(min_q_values, 2),
+                    cellLoc='center',
+                    loc='center',
+                    colLabels=[str(i) for i in range(GRID_SIZE)],
+                    rowLabels=[str(i) for i in range(GRID_SIZE)],
+                    cellColours=colours)
+    ax.clear()
+    ax.add_table(table)
+    # fig.canvas.draw()
+    fig.canvas.flush_events()
+    time.sleep(.05)
+
     # Print the total cost for the episode
-    # print(f"Episode {episode + 1}: Total cost = {total_cost}")
+    print(f"Episode {episode + 1}: Total cost = {total_cost}")
 with np.printoptions(threshold=np.inf):
     print(q_table)
 
