@@ -53,9 +53,11 @@ ACTIONS = ['N', 'S', 'W', 'O']
 
 # Initialize the Q-table with zeros
 q_table = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
+q_table_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
 
 # Create an np-array of same size to track how often the q-value was updated
 update_counts = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
+update_counts_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
 
 # Function to choose an action based on the Q-values
 def choose_action(state, epsilon):
@@ -95,24 +97,40 @@ def map_state_to_index(state):
     # print("state: ", state, "index: ", index)
     return index
 
-plt.ion()
-q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
-min_q_values = np.min(q_values, axis=2)
 
-norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
-colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
-fig, ax = plt.subplots(figsize=(8, 6))
-table = plt.table(cellText=np.round(min_q_values, 2),
+def animate_q_values(q_table, is_update):
+    q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+    min_q_values = np.min(q_values, axis=2)
+
+    norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
+    colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
+  
+    table = plt.table(cellText=np.round(min_q_values, 2),
                     cellLoc='center',
                     loc='center',
                     colLabels=[str(i) for i in range(GRID_SIZE)],
                     rowLabels=[str(i) for i in range(GRID_SIZE)],
                     cellColours=colours)
-table.set_fontsize(18)
-ax.axis('off')
-plt.title('Minimum Q-values')
+    ax.clear()
+    ax.add_table(table)
+    ax.axis('off')
+    plt.title('Minimum Q-values')
+    start_x = 4
+    # For whatever reason this has to be +1
+    start_y = 13
+    goal_x = 13
+    # For whatever reason this has to be +1
+    goal_y = 12
+    start_cell = table[start_y, start_x]
+    goal_cell = table[goal_y, goal_x]
+    start_cell.set_facecolor("lightblue")
+    goal_cell.set_facecolor("lightblue")
+    fig.canvas.flush_events()
+    time.sleep(0.01)
 
-plt.show()
+plt.ion()
+fig, ax = plt.subplots(figsize=(8, 6))
+animate_q_values(q_table, False)
 
 # Run Q-learning algorithm
 for episode in range(NUM_EPISODES):
@@ -185,73 +203,14 @@ for episode in range(NUM_EPISODES):
         # if state == START_POSITION:
         #     break
     
-    q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
-    min_q_values = np.min(q_values, axis=2)
 
-    norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
-    colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
-    table = plt.table(cellText=np.round(min_q_values, 2),
-                    cellLoc='center',
-                    loc='center',
-                    colLabels=[str(i) for i in range(GRID_SIZE)],
-                    rowLabels=[str(i) for i in range(GRID_SIZE)],
-                    cellColours=colours)
-    ax.clear()
-    ax.add_table(table)
-    ax.axis('off')
-    plt.title('Minimum Q-values')
-    start_x = 4
-    # For whatever reason this has to be +1
-    start_y = 13
-    goal_x = 13
-    # For whatever reason this has to be +1
-    goal_y = 12
-    start_cell = table[start_y, start_x]
-    goal_cell = table[goal_y, goal_x]
-    start_cell.set_facecolor("lightblue")
-    goal_cell.set_facecolor("lightblue")
-    # fig.canvas.draw()
-    fig.canvas.flush_events()
-    time.sleep(.05)
+    animate_q_values(q_table, True)
 
     # Print the total cost for the episode
     print(f"Episode {episode + 1}: Total cost = {total_cost}")
 with np.printoptions(threshold=np.inf):
     print(q_table)
 
-
-q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
-min_q_values = np.min(q_values, axis=2)
-
-fig, ax = plt.subplots(figsize=(8, 6))
-
-norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
-colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
-
-# Create a table to display the minimum Q-values
-table = plt.table(cellText=np.round(min_q_values, 2),
-                  cellLoc='center',
-                  loc='center',
-                  colLabels=[str(i) for i in range(GRID_SIZE)],
-                  rowLabels=[str(i) for i in range(GRID_SIZE)],
-                  cellColours=colours)
-
-table.set_fontsize(18)
-ax.axis('off')
-plt.title('Minimum Q-values')
-
-start_x = 4
-# For whatever reason this has to be +1
-start_y = 13
-goal_x = 13
-# For whatever reason this has to be +1
-goal_y = 12
-start_cell = table[start_y, start_x]
-goal_cell = table[goal_y, goal_x]
-start_cell.set_facecolor("lightblue")
-goal_cell.set_facecolor("lightblue")
-
-plt.show()
 
 # # Evaluate the learned policy
 # state = START_POSITION
