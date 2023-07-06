@@ -203,7 +203,7 @@ for episode in range(NUM_EPISODES):
                     # If drone hits obstacle, cost of 1000 and end of episode
                     cost = OBSTACLE_COST
                     total_cost += cost
-                    update_q_table(state, action, cost, next_state, q_table, update_counts)
+                    update_q_table(state, action, cost, next_state, q_table_back, update_counts_back)
                     break
                 else:
                     cost = 1
