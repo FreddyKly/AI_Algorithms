@@ -214,8 +214,10 @@ for episode in range(NUM_EPISODES):
                 
                 if state == START_POSITION:
                     break
+            # Continue episode if drone did not crash (state != GOAL_STATE e.g.)
             else:
                 continue
+            # If break was triggered for way back, stop the whole episode
             break
         
     # animate_q_values(q_table, 1)
