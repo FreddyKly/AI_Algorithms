@@ -228,63 +228,6 @@ for episode in range(NUM_EPISODES):
 with np.printoptions(threshold=np.inf):
     print(q_table)
 
-# q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
-# min_q_values = np.min(q_values, axis=2)
-
-# norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
-# colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
-
-# table = ax[0].table(cellText=np.round(min_q_values, 2),
-#                 cellLoc='center',
-#                 loc='center',
-#                 colLabels=[str(i) for i in range(GRID_SIZE)],
-#                 rowLabels=[str(i) for i in range(GRID_SIZE)],
-#                 cellColours=colours)
-
-# ax[0].axis('off')
-# fig.suptitle('Minimum Q-values')
-# start_x = 4
-# # For whatever reason this has to be +1
-# start_y = 13
-# goal_x = 13
-# # For whatever reason this has to be +1
-# goal_y = 12
-# start_cell = table[start_y, start_x]
-# goal_cell = table[goal_y, goal_x]
-# start_cell.set_facecolor("lightblue")
-# goal_cell.set_facecolor("lightblue")
-
-
-
-# q_values_back = np.reshape(q_table_back, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
-# min_q_values_back = np.min(q_values_back, axis=2)
-
-# norm_back = plt.Normalize(np.round(min_q_values_back, 2).min()-10, np.round(min_q_values_back, 2).max()+1)
-# colours_back = plt.cm.hot(norm(np.round(min_q_values_back, 2)))
-
-# table_back = ax[1].table(cellText=np.round(min_q_values_back, 2),
-#                 cellLoc='center',
-#                 loc='center',
-#                 colLabels=[str(i) for i in range(GRID_SIZE)],
-#                 rowLabels=[str(i) for i in range(GRID_SIZE)],
-#                 cellColours=colours_back)
-
-# ax[1].axis('off')
-# fig.suptitle('Minimum Q-values')
-# start_x = 4
-# # For whatever reason this has to be +1
-# start_y = 13
-# goal_x = 13
-# # For whatever reason this has to be +1
-# goal_y = 12
-# start_cell = table_back[start_y, start_x]
-# goal_cell = table_back[goal_y, goal_x]
-# start_cell.set_facecolor("lightblue")
-# goal_cell.set_facecolor("lightblue")
-
-# plt.draw()
-# plt.show()
-
 
 # Evaluate the learned policy
 state = START_POSITION
@@ -292,7 +235,8 @@ path = [state]
 while state != GOAL_STATE:
     idx_state = map_state_to_index(state)
     action = ACTIONS[np.argmin(q_table[idx_state])]
-    # print(q_table[idx_state], "chosen: ", np.argmax(q_table[idx_state]))
+    current_state = q_table[idx_state],
+    print(q_table[idx_state], "chosen: ", q_table[idx_state][np.argmin(q_table[idx_state])])
     
     if action == 'N':
         next_state = (state[0], state[1] - 1) if state[1] > 0 else state
@@ -331,3 +275,64 @@ for position in path:
 print("Optimal Path back:")
 for position in path_back:
     print(position)
+
+q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+min_q_values = np.min(q_values, axis=2)
+
+norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
+colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
+
+table = ax[0].table(cellText=np.round(min_q_values, 2),
+                cellLoc='center',
+                loc='center',
+                colLabels=[str(i) for i in range(GRID_SIZE)],
+                rowLabels=[str(i) for i in range(GRID_SIZE)],
+                cellColours=colours)
+
+ax[0].axis('off')
+fig.suptitle('Minimum Q-values')
+start_x = 4
+# For whatever reason this has to be +1
+start_y = 13
+goal_x = 13
+# For whatever reason this has to be +1
+goal_y = 12
+start_cell = table[start_y, start_x]
+goal_cell = table[goal_y, goal_x]
+for cell in path:
+    table[cell[1] +1, cell[0]].set_facecolor("green")
+start_cell.set_facecolor("lightblue")
+goal_cell.set_facecolor("lightblue")
+
+
+
+q_values_back = np.reshape(q_table_back, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+min_q_values_back = np.min(q_values_back, axis=2)
+
+norm_back = plt.Normalize(np.round(min_q_values_back, 2).min()-10, np.round(min_q_values_back, 2).max()+1)
+colours_back = plt.cm.hot(norm(np.round(min_q_values_back, 2)))
+
+table_back = ax[1].table(cellText=np.round(min_q_values_back, 2),
+                cellLoc='center',
+                loc='center',
+                colLabels=[str(i) for i in range(GRID_SIZE)],
+                rowLabels=[str(i) for i in range(GRID_SIZE)],
+                cellColours=colours_back)
+
+ax[1].axis('off')
+fig.suptitle('Minimum Q-values')
+start_x = 4
+# For whatever reason this has to be +1
+start_y = 13
+goal_x = 13
+# For whatever reason this has to be +1
+goal_y = 12
+start_cell = table_back[start_y, start_x]
+goal_cell = table_back[goal_y, goal_x]
+for cell in path_back:
+    table_back[cell[1] +1, cell[0]].set_facecolor("green")
+start_cell.set_facecolor("lightblue")
+goal_cell.set_facecolor("lightblue")
+
+plt.draw()
+plt.show()
