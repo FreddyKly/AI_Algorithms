@@ -83,8 +83,8 @@ def update_q_table(state, action, cost, next_state, q_table_loc, update_counts_l
 
     # Update learning rate
     update_counts_loc[idx_state][idx_action] += 1
-    # learning_rate = 1 / update_counts[idx_state][idx_action]
-    learning_rate = 0.7 # Wegen deterministischer Umgebung?
+    learning_rate = 1 / update_counts[idx_state][idx_action]
+    # learning_rate = 0.7 # Wegen deterministischer Umgebung?
 
     new_q_value = (1 - learning_rate) * current_q + learning_rate * (cost + min_next_q)
     # Assign new q-value
@@ -97,6 +97,19 @@ def map_state_to_index(state):
     # print("state: ", state, "index: ", index)
     return index
 
+def is_converged(q_values, prev_q_values):
+    threshold = 0.0001
+    max_diff = 0.0
+    for idx_state in range(len(q_values)):
+        for idx_action in range(len(q_values[idx_state])):
+            diff = abs(q_values[idx_state][idx_action] - prev_q_values[idx_state][idx_action])
+            if diff > max_diff:
+                max_diff = diff
+    print(max_diff)
+    if max_diff < threshold:
+        pass
+
+    return max_diff < threshold
 
 def animate_q_values(q_table_loc, way_idx):
     q_values = np.reshape(q_table_loc, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
@@ -141,6 +154,8 @@ def animate_q_values(q_table_loc, way_idx):
 
 # plt.ion()
 fig, ax = plt.subplots(2, 1, figsize=(12, 9))
+prev_q_table_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
+prev_q_table_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
 # animate_q_values(q_table, 1)
 
 # Run Q-learning algorithm
@@ -163,6 +178,7 @@ for episode in range(NUM_EPISODES):
         elif action == 'O':
             next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
 
+        prev_q_table = q_table.copy()
 
         # Assign a cost based on the next state
         if next_state == GOAL_STATE:
@@ -197,6 +213,8 @@ for episode in range(NUM_EPISODES):
                 elif action == 'O':
                     next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
                 
+                prev_q_table_back = q_table_back.copy()
+
                 if next_state == START_POSITION:
                     cost = GOAL_COST
                 elif next_state in OBSTACLES:
@@ -222,59 +240,62 @@ for episode in range(NUM_EPISODES):
         
     # animate_q_values(q_table, 1)
     # animate_q_values(q_table_back, 2)
-
+    
     # Print the total cost for the episode
     print(f"Episode {episode + 1}: Total cost = {total_cost}")
+
+    if(is_converged(q_table, prev_q_table) and is_converged(q_table_back, prev_q_table_back)):
+        break
 with np.printoptions(threshold=np.inf):
     print(q_table)
 
 
 # Evaluate the learned policy
-state = START_POSITION
-path = [state]
-while state != GOAL_STATE:
-    idx_state = map_state_to_index(state)
-    action = ACTIONS[np.argmin(q_table[idx_state])]
-    current_state = q_table[idx_state],
-    print(q_table[idx_state], "chosen: ", q_table[idx_state][np.argmin(q_table[idx_state])])
+# state = START_POSITION
+# path = [state]
+# while state != GOAL_STATE:
+#     idx_state = map_state_to_index(state)
+#     action = ACTIONS[np.argmin(q_table[idx_state])]
+#     current_state = q_table[idx_state],
+#     print(q_table[idx_state], "chosen: ", q_table[idx_state][np.argmin(q_table[idx_state])])
     
-    if action == 'N':
-        next_state = (state[0], state[1] - 1) if state[1] > 0 else state
-    elif action == 'S':
-        next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
-    elif action == 'W':
-        next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
-    elif action == 'O':
-        next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+#     if action == 'N':
+#         next_state = (state[0], state[1] - 1) if state[1] > 0 else state
+#     elif action == 'S':
+#         next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
+#     elif action == 'W':
+#         next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
+#     elif action == 'O':
+#         next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
     
-    state = next_state
-    path.append(state)
+#     state = next_state
+#     path.append(state)
 
-path_back = [state]
-while state != START_POSITION:
-    idx_state = map_state_to_index(state)
-    action = ACTIONS[np.argmin(q_table_back[idx_state])]
+# path_back = [state]
+# while state != START_POSITION:
+#     idx_state = map_state_to_index(state)
+#     action = ACTIONS[np.argmin(q_table_back[idx_state])]
     
-    if action == 'N':
-        next_state = (state[0], state[1] - 1) if state[1] > 0 else state
-    elif action == 'S':
-        next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
-    elif action == 'W':
-        next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
-    elif action == 'O':
-        next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+#     if action == 'N':
+#         next_state = (state[0], state[1] - 1) if state[1] > 0 else state
+#     elif action == 'S':
+#         next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
+#     elif action == 'W':
+#         next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
+#     elif action == 'O':
+#         next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
     
-    state = next_state
-    path_back.append(state)
+#     state = next_state
+#     path_back.append(state)
 
-# Print the optimal path
-print("Optimal Path:")
-for position in path:
-    print(position)
+# # Print the optimal path
+# print("Optimal Path:")
+# for position in path:
+#     print(position)
 
-print("Optimal Path back:")
-for position in path_back:
-    print(position)
+# print("Optimal Path back:")
+# for position in path_back:
+#     print(position)
 
 q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values = np.min(q_values, axis=2)
@@ -299,8 +320,8 @@ goal_x = 13
 goal_y = 12
 start_cell = table[start_y, start_x]
 goal_cell = table[goal_y, goal_x]
-for cell in path:
-    table[cell[1] +1, cell[0]].set_facecolor("green")
+# for cell in path:
+#     table[cell[1] +1, cell[0]].set_facecolor("green")
 start_cell.set_facecolor("lightblue")
 goal_cell.set_facecolor("lightblue")
 
@@ -329,8 +350,8 @@ goal_x = 13
 goal_y = 12
 start_cell = table_back[start_y, start_x]
 goal_cell = table_back[goal_y, goal_x]
-for cell in path_back:
-    table_back[cell[1] +1, cell[0]].set_facecolor("green")
+# for cell in path_back:
+#     table_back[cell[1] +1, cell[0]].set_facecolor("green")
 start_cell.set_facecolor("lightblue")
 goal_cell.set_facecolor("lightblue")
 
