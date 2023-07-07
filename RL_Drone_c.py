@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import time
+import random
 
 # Define the environment size
 GRID_SIZE = 16
@@ -16,10 +17,10 @@ NUM_EPISODES = 1000
 MAX_STEPS = 100
 
 # Define the agent's starting position
-START_POSITION = (4, 12)
+START_POSITION = (4, 12, 0)
 
 # Define the goal state
-GOAL_STATE = (13, 11)
+GOAL_STATE = (13, 11, 0)
 
 # Define the obstacle positions
 OBSTACLES = []
@@ -49,15 +50,15 @@ for i in range (7, 10):
     
 
 # Define the possible actions
-ACTIONS = ['N', 'S', 'W', 'O']
+ACTIONS = ['N', 'S', 'W', 'O', 'H', 'R']
 
 # Initialize the Q-table with zeros
-q_table = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
-q_table_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
+q_table = np.zeros((GRID_SIZE * GRID_SIZE * 2, len(ACTIONS)))
+q_table_back = np.zeros((GRID_SIZE * GRID_SIZE * 2, len(ACTIONS)))
 
 # Create an np-array of same size to track how often the q-value was updated
-update_counts = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
-update_counts_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
+update_counts = np.zeros((GRID_SIZE * GRID_SIZE * 2, len(ACTIONS)))
+update_counts_back = np.zeros((GRID_SIZE * GRID_SIZE * 2, len(ACTIONS)))
 
 # Function to choose an action based on the Q-values
 def choose_action(state, epsilon, q_table_loc):
@@ -92,24 +93,22 @@ def update_q_table(state, action, cost, next_state, q_table_loc, update_counts_l
 
 # Map state to a unique index, corresponding to it's x and y value
 def map_state_to_index(state):
-    x, y = state
-    index = y * GRID_SIZE + x
+    x, y, z = state
+    index = y * GRID_SIZE + x + (z * GRID_SIZE * GRID_SIZE)
     # print("state: ", state, "index: ", index)
     return index
 
 def is_converged(q_values, prev_q_values):
-    threshold = 0.0001
-    max_diff = 0.0000
-    for idx_state in range(len(q_values)):
-        for idx_action in range(len(q_values[idx_state])):
-            diff = abs(q_values[idx_state][idx_action] - prev_q_values[idx_state][idx_action])
+    threshold = 0.1
+    max_diff = 0.0
+    for state in q_values:
+        for action in q_values[state]:
+            diff = abs(q_values[state][action] - prev_q_values[state][action])
             if diff > max_diff:
                 max_diff = diff
-    print(max_diff)
-    if max_diff < threshold:
-        pass
 
     return max_diff < threshold
+
 
 def animate_q_values(q_table_loc, way_idx):
     q_values = np.reshape(q_table_loc, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
@@ -154,8 +153,6 @@ def animate_q_values(q_table_loc, way_idx):
 
 # plt.ion()
 fig, ax = plt.subplots(2, 1, figsize=(12, 9))
-prev_q_table_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
-prev_q_table_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
 # animate_q_values(q_table, 1)
 
 # Run Q-learning algorithm
@@ -167,16 +164,36 @@ for episode in range(NUM_EPISODES):
         epsilon = (1 / (episode + 1))  # Decrease exploration rate over time
         
         action = choose_action(state, epsilon, q_table)
+
+        air_layer_coef = state[2] + 1
         
         # Perform the chosen action and observe the next state and cost
         if action == 'N':
-            next_state = (state[0], state[1] - 1) if state[1] > 0 else state
+            next_state = (state[0], state[1] - 1 * air_layer_coef, state[2]) if (state[1] >= 1 * air_layer_coef) else state
         elif action == 'S':
-            next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
+            next_state = (state[0], state[1] + 1 * air_layer_coef, state[2]) if (state[1] < GRID_SIZE - 1 * air_layer_coef) else state
         elif action == 'W':
-            next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
+            next_state = (state[0] - 1 * air_layer_coef, state[1], state[2]) if (state[0] >= 1 * air_layer_coef) else state
         elif action == 'O':
-            next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+            next_state = (state[0] + 1 * air_layer_coef, state[1], state[2]) if (state[0] < GRID_SIZE - 1 * air_layer_coef) else state
+        elif action == 'H':
+            next_state = (state[0], state[1], state[2] + 1) if state[2] == 0 else state
+        elif action == 'R':
+            next_state = (state[0], state[1], state[2] - 1) if state[2] == 1 else state
+
+        wind_dir = random.randint(1, 4)
+        if (wind_dir == 1):
+            # N
+            next_state = (next_state[0], next_state[1] - 1, state[2]) if next_state[1] > 0 else next_state
+        elif (wind_dir == 2):
+            # S
+            next_state = (next_state[0], next_state[1] + 1, state[2]) if next_state[1] < GRID_SIZE - 1 else next_state
+        elif (wind_dir == 3):
+            # W
+            next_state = (next_state[0] - 1, next_state[1], state[2]) if next_state[0] > 0 else next_state
+        elif (wind_dir == 4):
+            # O
+            next_state = (next_state[0] + 1, next_state[1], state[2]) if next_state[0] < GRID_SIZE - 1 else next_state
 
         prev_q_table = q_table.copy()
 
@@ -205,13 +222,31 @@ for episode in range(NUM_EPISODES):
                 action = choose_action(state, epsilon, q_table_back)
                 
                 if action == 'N':
-                    next_state = (state[0], state[1] - 1) if state[1] > 0 else state
+                    next_state = (state[0], state[1] - 1 * air_layer_coef, state[2]) if (state[1] >= 1 * air_layer_coef) else state
                 elif action == 'S':
-                    next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
+                    next_state = (state[0], state[1] + 1 * air_layer_coef, state[2]) if (state[1] < GRID_SIZE - 1 * air_layer_coef) else state
                 elif action == 'W':
-                    next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
+                    next_state = (state[0] - 1 * air_layer_coef, state[1], state[2]) if (state[0] >= 1 * air_layer_coef) else state
                 elif action == 'O':
-                    next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+                    next_state = (state[0] + 1 * air_layer_coef, state[1], state[2]) if (state[0] < GRID_SIZE - 1 * air_layer_coef) else state
+                elif action == 'H':
+                    next_state = (state[0], state[1], state[2] + 1) if state[2] == 0 else state
+                elif action == 'R':
+                    next_state = (state[0], state[1], state[2] - 1) if state[2] == 1 else state
+
+                wind_dir = random.randint(1, 4)
+                if (wind_dir == 1):
+                    # N
+                    next_state = (next_state[0], next_state[1] - 1, state[2]) if next_state[1] > 0 else next_state
+                elif (wind_dir == 2):
+                    # S
+                    next_state = (next_state[0], next_state[1] + 1, state[2]) if next_state[1] < GRID_SIZE - 1 else next_state
+                elif (wind_dir == 3):
+                    # W
+                    next_state = (next_state[0] - 1, next_state[1], state[2]) if next_state[0] > 0 else next_state
+                elif (wind_dir == 4):
+                    # O
+                    next_state = (next_state[0] + 1, next_state[1], state[2]) if next_state[0] < GRID_SIZE - 1 else next_state
                 
                 prev_q_table_back = q_table_back.copy()
 
@@ -240,12 +275,12 @@ for episode in range(NUM_EPISODES):
         
     # animate_q_values(q_table, 1)
     # animate_q_values(q_table_back, 2)
-    
+
+    # is_converged(q_table, prev_q_table)
+    # is_converged(q_table_back, prev_q_table)
+
     # Print the total cost for the episode
     print(f"Episode {episode + 1}: Total cost = {total_cost}")
-
-    # if(is_converged(q_table, prev_q_table) and is_converged(q_table_back, prev_q_table_back)):
-    #     break
 with np.printoptions(threshold=np.inf):
     print(q_table)
 
@@ -297,7 +332,7 @@ with np.printoptions(threshold=np.inf):
 # for position in path_back:
 #     print(position)
 
-q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+q_values = np.reshape(q_table[:256], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values = np.min(q_values, axis=2)
 
 norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
@@ -308,7 +343,8 @@ table = ax[0].table(cellText=np.round(min_q_values, 2),
                 loc='center',
                 colLabels=[str(i) for i in range(GRID_SIZE)],
                 rowLabels=[str(i) for i in range(GRID_SIZE)],
-                cellColours=colours)
+                cellColours=colours
+                )
 
 ax[0].axis('off')
 fig.suptitle('Minimum Q-values')
@@ -327,11 +363,11 @@ goal_cell.set_facecolor("lightblue")
 
 
 
-q_values_back = np.reshape(q_table_back, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+q_values_back = np.reshape(q_table_back[:256], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values_back = np.min(q_values_back, axis=2)
 
 norm_back = plt.Normalize(np.round(min_q_values_back, 2).min()-10, np.round(min_q_values_back, 2).max()+1)
-colours_back = plt.cm.hot(norm(np.round(min_q_values_back, 2)))
+colours_back = plt.cm.hot(norm_back(np.round(min_q_values_back, 2)))
 
 table_back = ax[1].table(cellText=np.round(min_q_values_back, 2),
                 cellLoc='center',
