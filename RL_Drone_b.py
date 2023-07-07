@@ -156,9 +156,6 @@ for episode in range(NUM_EPISODES):
         
         # Perform the chosen action and observe the next state and cost
         if action == 'N':
-            wind_dir = random.randint(1, 4)
-            if (wind_dir == 1):
-                next_state = (state[0], state[1] - 2) if state[1] > 1 else state
             next_state = (state[0], state[1] - 1) if state[1] > 0 else state
         elif action == 'S':
             next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
@@ -166,6 +163,17 @@ for episode in range(NUM_EPISODES):
             next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
         elif action == 'O':
             next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+
+        wind_dir = random.randint(1, 4)
+        if (wind_dir == 1):
+            # N
+            next_state = ()
+        if (wind_dir == 2):
+            pass
+        if (wind_dir == 3):
+            pass
+        if (wind_dir == 4):
+            pass
 
 
         # Assign a cost based on the next state
