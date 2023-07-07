@@ -98,6 +98,17 @@ def map_state_to_index(state):
     # print("state: ", state, "index: ", index)
     return index
 
+def is_converged(q_values, prev_q_values):
+    threshold = 0.1
+    max_diff = 0.0
+    for state in q_values:
+        for action in q_values[state]:
+            diff = abs(q_values[state][action] - prev_q_values[state][action])
+            if diff > max_diff:
+                max_diff = diff
+
+    return max_diff < threshold
+
 
 def animate_q_values(q_table_loc, way_idx):
     q_values = np.reshape(q_table_loc, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
@@ -167,14 +178,18 @@ for episode in range(NUM_EPISODES):
         wind_dir = random.randint(1, 4)
         if (wind_dir == 1):
             # N
-            next_state = ()
-        if (wind_dir == 2):
-            pass
-        if (wind_dir == 3):
-            pass
-        if (wind_dir == 4):
-            pass
+            next_state = (next_state[0], next_state[1] - 1) if next_state[1] > 0 else next_state
+        elif (wind_dir == 2):
+            # S
+            next_state = (next_state[0], next_state[1] + 1) if next_state[1] < GRID_SIZE - 1 else next_state
+        elif (wind_dir == 3):
+            # W
+            next_state = (next_state[0] - 1, next_state[1]) if next_state[0] > 0 else next_state
+        elif (wind_dir == 4):
+            # O
+            next_state = (next_state[0] + 1, next_state[1]) if next_state[0] < GRID_SIZE - 1 else next_state
 
+        prev_q_table = q_table.copy()
 
         # Assign a cost based on the next state
         if next_state == GOAL_STATE:
@@ -208,7 +223,23 @@ for episode in range(NUM_EPISODES):
                     next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
                 elif action == 'O':
                     next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+
+                wind_dir = random.randint(1, 4)
+                if (wind_dir == 1):
+                    # N
+                    next_state = (next_state[0], next_state[1] - 1) if next_state[1] > 0 else next_state
+                elif (wind_dir == 2):
+                    # S
+                    next_state = (next_state[0], next_state[1] + 1) if next_state[1] < GRID_SIZE - 1 else next_state
+                elif (wind_dir == 3):
+                    # W
+                    next_state = (next_state[0] - 1, next_state[1]) if next_state[0] > 0 else next_state
+                elif (wind_dir == 4):
+                    # O
+                    next_state = (next_state[0] + 1, next_state[1]) if next_state[0] < GRID_SIZE - 1 else next_state
                 
+                prev_q_table_back = q_table_back.copy()
+
                 if next_state == START_POSITION:
                     cost = GOAL_COST
                 elif next_state in OBSTACLES:
@@ -235,6 +266,9 @@ for episode in range(NUM_EPISODES):
     # animate_q_values(q_table, 1)
     # animate_q_values(q_table_back, 2)
 
+    # is_converged(q_table, prev_q_table)
+    # is_converged(q_table_back, prev_q_table)
+
     # Print the total cost for the episode
     print(f"Episode {episode + 1}: Total cost = {total_cost}")
 with np.printoptions(threshold=np.inf):
@@ -242,51 +276,51 @@ with np.printoptions(threshold=np.inf):
 
 
 # Evaluate the learned policy
-state = START_POSITION
-path = [state]
-while state != GOAL_STATE:
-    idx_state = map_state_to_index(state)
-    action = ACTIONS[np.argmin(q_table[idx_state])]
-    current_state = q_table[idx_state],
-    print(q_table[idx_state], "chosen: ", q_table[idx_state][np.argmin(q_table[idx_state])])
+# state = START_POSITION
+# path = [state]
+# while state != GOAL_STATE:
+#     idx_state = map_state_to_index(state)
+#     action = ACTIONS[np.argmin(q_table[idx_state])]
+#     current_state = q_table[idx_state],
+#     print(q_table[idx_state], "chosen: ", q_table[idx_state][np.argmin(q_table[idx_state])])
     
-    if action == 'N':
-        next_state = (state[0], state[1] - 1) if state[1] > 0 else state
-    elif action == 'S':
-        next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
-    elif action == 'W':
-        next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
-    elif action == 'O':
-        next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+#     if action == 'N':
+#         next_state = (state[0], state[1] - 1) if state[1] > 0 else state
+#     elif action == 'S':
+#         next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
+#     elif action == 'W':
+#         next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
+#     elif action == 'O':
+#         next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
     
-    state = next_state
-    path.append(state)
+#     state = next_state
+#     path.append(state)
 
-path_back = [state]
-while state != START_POSITION:
-    idx_state = map_state_to_index(state)
-    action = ACTIONS[np.argmin(q_table_back[idx_state])]
+# path_back = [state]
+# while state != START_POSITION:
+#     idx_state = map_state_to_index(state)
+#     action = ACTIONS[np.argmin(q_table_back[idx_state])]
     
-    if action == 'N':
-        next_state = (state[0], state[1] - 1) if state[1] > 0 else state
-    elif action == 'S':
-        next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
-    elif action == 'W':
-        next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
-    elif action == 'O':
-        next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+#     if action == 'N':
+#         next_state = (state[0], state[1] - 1) if state[1] > 0 else state
+#     elif action == 'S':
+#         next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
+#     elif action == 'W':
+#         next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
+#     elif action == 'O':
+#         next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
     
-    state = next_state
-    path_back.append(state)
+#     state = next_state
+#     path_back.append(state)
 
-# Print the optimal path
-print("Optimal Path:")
-for position in path:
-    print(position)
+# # Print the optimal path
+# print("Optimal Path:")
+# for position in path:
+#     print(position)
 
-print("Optimal Path back:")
-for position in path_back:
-    print(position)
+# print("Optimal Path back:")
+# for position in path_back:
+#     print(position)
 
 q_values = np.reshape(q_table, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values = np.min(q_values, axis=2)
@@ -299,7 +333,8 @@ table = ax[0].table(cellText=np.round(min_q_values, 2),
                 loc='center',
                 colLabels=[str(i) for i in range(GRID_SIZE)],
                 rowLabels=[str(i) for i in range(GRID_SIZE)],
-                cellColours=colours)
+                cellColours=colours
+                )
 
 ax[0].axis('off')
 fig.suptitle('Minimum Q-values')
@@ -311,8 +346,8 @@ goal_x = 13
 goal_y = 12
 start_cell = table[start_y, start_x]
 goal_cell = table[goal_y, goal_x]
-for cell in path:
-    table[cell[1] +1, cell[0]].set_facecolor("green")
+# for cell in path:
+#     table[cell[1] +1, cell[0]].set_facecolor("green")
 start_cell.set_facecolor("lightblue")
 goal_cell.set_facecolor("lightblue")
 
@@ -322,7 +357,7 @@ q_values_back = np.reshape(q_table_back, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values_back = np.min(q_values_back, axis=2)
 
 norm_back = plt.Normalize(np.round(min_q_values_back, 2).min()-10, np.round(min_q_values_back, 2).max()+1)
-colours_back = plt.cm.hot(norm(np.round(min_q_values_back, 2)))
+colours_back = plt.cm.hot(norm_back(np.round(min_q_values_back, 2)))
 
 table_back = ax[1].table(cellText=np.round(min_q_values_back, 2),
                 cellLoc='center',
@@ -341,8 +376,8 @@ goal_x = 13
 goal_y = 12
 start_cell = table_back[start_y, start_x]
 goal_cell = table_back[goal_y, goal_x]
-for cell in path_back:
-    table_back[cell[1] +1, cell[0]].set_facecolor("green")
+# for cell in path_back:
+#     table_back[cell[1] +1, cell[0]].set_facecolor("green")
 start_cell.set_facecolor("lightblue")
 goal_cell.set_facecolor("lightblue")
 
