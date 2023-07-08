@@ -11,7 +11,7 @@ OBSTACLE_COST = 1000
 GOAL_COST = 0
 
 # Define the number of episodes
-NUM_EPISODES = 10000
+NUM_EPISODES = 1000
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -111,47 +111,6 @@ def is_converged(q_values, prev_q_values):
     return max_diff < threshold
 
 
-def animate_q_values(q_table_loc, way_idx):
-    q_values = np.reshape(q_table_loc, (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
-    min_q_values = np.min(q_values, axis=2)
-
-    norm = plt.Normalize(np.round(min_q_values, 2).min()-10, np.round(min_q_values, 2).max()+1)
-    colours = plt.cm.hot(norm(np.round(min_q_values, 2)))
-  
-    table = plt.table(cellText=np.round(min_q_values, 2),
-                    cellLoc='center',
-                    loc='center',
-                    colLabels=[str(i) for i in range(GRID_SIZE)],
-                    rowLabels=[str(i) for i in range(GRID_SIZE)],
-                    cellColours=colours)
-    if (way_idx == 2):
-        table_back = plt.table(cellText=np.round(min_q_values, 2),
-                    cellLoc='center',
-                    loc='center',
-                    colLabels=[str(i) for i in range(GRID_SIZE)],
-                    rowLabels=[str(i) for i in range(GRID_SIZE)],
-                    cellColours=colours)
-        ax[1].clear()
-        ax[1].add_table(table_back)
-        ax[1].axis('off')
-
-    ax[0].clear()
-    ax[0].add_table(table)
-    ax[0].axis('off')
-    fig.suptitle('Minimum Q-values')
-    start_x = 4
-    # For whatever reason this has to be +1
-    start_y = 13
-    goal_x = 13
-    # For whatever reason this has to be +1
-    goal_y = 12
-    start_cell = table[start_y, start_x]
-    goal_cell = table[goal_y, goal_x]
-    start_cell.set_facecolor("lightblue")
-    goal_cell.set_facecolor("lightblue")
-    fig.canvas.flush_events()
-    # time.sleep(0.01)
-
 # plt.ion()
 fig, ax = plt.subplots(2, 1, figsize=(12, 9))
 fig2, ax2 = plt.subplots(2, 1, figsize=(12, 9))
@@ -186,16 +145,16 @@ for episode in range(NUM_EPISODES):
         wind_dir = random.randint(1, 4)
         if (wind_dir == 1):
             # N
-            next_state = (next_state[0], next_state[1] - 1, state[2]) if next_state[1] > 0 else next_state
+            next_state = (next_state[0], next_state[1] - 1, next_state[2]) if next_state[1] > 0 else next_state
         elif (wind_dir == 2):
             # S
-            next_state = (next_state[0], next_state[1] + 1, state[2]) if next_state[1] < GRID_SIZE - 1 else next_state
+            next_state = (next_state[0], next_state[1] + 1, next_state[2]) if next_state[1] < GRID_SIZE - 1 else next_state
         elif (wind_dir == 3):
             # W
-            next_state = (next_state[0] - 1, next_state[1], state[2]) if next_state[0] > 0 else next_state
+            next_state = (next_state[0] - 1, next_state[1], next_state[2]) if next_state[0] > 0 else next_state
         elif (wind_dir == 4):
             # O
-            next_state = (next_state[0] + 1, next_state[1], state[2]) if next_state[0] < GRID_SIZE - 1 else next_state
+            next_state = (next_state[0] + 1, next_state[1], next_state[2]) if next_state[0] < GRID_SIZE - 1 else next_state
 
         prev_q_table = q_table.copy()
 
@@ -239,16 +198,16 @@ for episode in range(NUM_EPISODES):
                 wind_dir = random.randint(1, 4)
                 if (wind_dir == 1):
                     # N
-                    next_state = (next_state[0], next_state[1] - 1, state[2]) if next_state[1] > 0 else next_state
+                    next_state = (next_state[0], next_state[1] - 1, next_state[2]) if next_state[1] > 0 else next_state
                 elif (wind_dir == 2):
                     # S
-                    next_state = (next_state[0], next_state[1] + 1, state[2]) if next_state[1] < GRID_SIZE - 1 else next_state
+                    next_state = (next_state[0], next_state[1] + 1, next_state[2]) if next_state[1] < GRID_SIZE - 1 else next_state
                 elif (wind_dir == 3):
                     # W
-                    next_state = (next_state[0] - 1, next_state[1], state[2]) if next_state[0] > 0 else next_state
+                    next_state = (next_state[0] - 1, next_state[1], next_state[2]) if next_state[0] > 0 else next_state
                 elif (wind_dir == 4):
                     # O
-                    next_state = (next_state[0] + 1, next_state[1], state[2]) if next_state[0] < GRID_SIZE - 1 else next_state
+                    next_state = (next_state[0] + 1, next_state[1], next_state[2]) if next_state[0] < GRID_SIZE - 1 else next_state
                 
                 prev_q_table_back = q_table_back.copy()
 
@@ -393,20 +352,23 @@ goal_cell = table_back[goal_y, goal_x]
 start_cell.set_facecolor("lightblue")
 goal_cell.set_facecolor("lightblue")
 
-q_values_back = np.reshape(q_table_back[256:], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
-min_q_values_back = np.min(q_values_back, axis=2)
 
-norm_back = plt.Normalize(np.round(min_q_values_back, 2).min()-10, np.round(min_q_values_back, 2).max()+1)
-colours_back = plt.cm.hot(norm_back(np.round(min_q_values_back, 2)))
 
-table_back = ax2[1].table(cellText=np.round(min_q_values_back, 2),
+
+q_values_H = np.reshape(q_table[256:], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+min_q_values_H = np.min(q_values_H, axis=2)
+
+norm_H = plt.Normalize(np.round(min_q_values_H, 2).min()-10, np.round(min_q_values_H, 2).max()+1)
+colours_H = plt.cm.hot(norm_H(np.round(min_q_values_H, 2)))
+
+table_H = ax2[0].table(cellText=np.round(min_q_values_H, 2),
                 cellLoc='center',
                 loc='center',
                 colLabels=[str(i) for i in range(GRID_SIZE)],
                 rowLabels=[str(i) for i in range(GRID_SIZE)],
-                cellColours=colours_back)
+                cellColours=colours_H)
 
-ax2[1].axis('off')
+ax2[0].axis('off')
 fig2.suptitle('Minimum Q-values')
 start_x = 4
 # For whatever reason this has to be +1
@@ -414,27 +376,29 @@ start_y = 13
 goal_x = 13
 # For whatever reason this has to be +1
 goal_y = 12
-start_cell = table_back[start_y, start_x]
-goal_cell = table_back[goal_y, goal_x]
+start_cell = table_H[start_y, start_x]
+goal_cell = table_H[goal_y, goal_x]
 # for cell in path_back:
 #     table_back[cell[1] +1, cell[0]].set_facecolor("green")
 start_cell.set_facecolor("lightblue")
 goal_cell.set_facecolor("lightblue")
 
-q_values_back = np.reshape(q_table_back[256:], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
-min_q_values_back = np.min(q_values_back, axis=2)
 
-norm_back = plt.Normalize(np.round(min_q_values_back, 2).min()-10, np.round(min_q_values_back, 2).max()+1)
-colours_back = plt.cm.hot(norm_back(np.round(min_q_values_back, 2)))
 
-table_back = ax2[0].table(cellText=np.round(min_q_values_back, 2),
+q_values_back_H = np.reshape(q_table_back[256:], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+min_q_values_back_H = np.min(q_values_back_H, axis=2)
+
+norm_back_H = plt.Normalize(np.round(min_q_values_back_H, 2).min()-10, np.round(min_q_values_back_H, 2).max()+1)
+colours_back_H = plt.cm.hot(norm_back_H(np.round(min_q_values_back_H, 2)))
+
+table_back_H = ax2[1].table(cellText=np.round(min_q_values_back_H, 2),
                 cellLoc='center',
                 loc='center',
                 colLabels=[str(i) for i in range(GRID_SIZE)],
                 rowLabels=[str(i) for i in range(GRID_SIZE)],
-                cellColours=colours_back)
+                cellColours=colours_back_H)
 
-ax2[0].axis('off')
+ax2[1].axis('off')
 fig2.suptitle('Minimum Q-values H')
 start_x = 4
 # For whatever reason this has to be +1
@@ -442,8 +406,8 @@ start_y = 13
 goal_x = 13
 # For whatever reason this has to be +1
 goal_y = 12
-start_cell = table_back[start_y, start_x]
-goal_cell = table_back[goal_y, goal_x]
+start_cell = table_back_H[start_y, start_x]
+goal_cell = table_back_H[goal_y, goal_x]
 # for cell in path_back:
 #     table_back[cell[1] +1, cell[0]].set_facecolor("green")
 start_cell.set_facecolor("lightblue")
