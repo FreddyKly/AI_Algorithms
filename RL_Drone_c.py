@@ -12,7 +12,7 @@ OBSTACLE_COST = 1000
 GOAL_COST = 0
 
 # Define the number of episodes
-NUM_EPISODES = 100000
+NUM_EPISODES = 10000
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -86,8 +86,8 @@ def update_q_table(state, action, cost, next_state, q_table_loc, update_counts_l
 
     # Update learning rate
     update_counts_loc[idx_state][idx_action] += 1
-    # learning_rate = 1 / update_counts[idx_state][idx_action]
-    learning_rate = 0.7 # Wegen deterministischer Umgebung?
+    # learning_rate = 1 / math.log2(update_counts[idx_state][idx_action] + 1)
+    learning_rate = 0.2 # Wegen deterministischer Umgebung?
 
     new_q_value = (1 - learning_rate) * current_q + learning_rate * (cost + min_next_q)
     # Assign new q-value
@@ -101,13 +101,15 @@ def map_state_to_index(state):
     return index
 
 def is_converged(q_values, prev_q_values):
-    threshold = 0.1
-    max_diff = 0.0
-    for state in q_values:
-        for action in q_values[state]:
-            diff = abs(q_values[state][action] - prev_q_values[state][action])
+    threshold = 0.001
+    max_diff = 0.0000
+    for idx_state in range(len(q_values)):
+        for idx_action in range(len(q_values[idx_state])):
+            diff = abs(q_values[idx_state][idx_action] - prev_q_values[idx_state][idx_action])
             if diff > max_diff:
                 max_diff = diff
+    if max_diff < threshold:
+        pass
 
     return max_diff < threshold
 
@@ -115,6 +117,7 @@ def is_converged(q_values, prev_q_values):
 # plt.ion()
 fig, ax = plt.subplots(2, 1, figsize=(12, 9))
 fig2, ax2 = plt.subplots(2, 1, figsize=(12, 9))
+prev_q_table_back = np.zeros((GRID_SIZE * GRID_SIZE * 2, len(ACTIONS)))
 # animate_q_values(q_table, 1)
 
 # Run Q-learning algorithm
@@ -238,8 +241,8 @@ for episode in range(NUM_EPISODES):
     # animate_q_values(q_table, 1)
     # animate_q_values(q_table_back, 2)
 
-    # is_converged(q_table, prev_q_table)
-    # is_converged(q_table_back, prev_q_table)
+    if(is_converged(q_table, prev_q_table) and is_converged(q_table_back, prev_q_table_back)):
+        break
 
     # Print the total cost for the episode
     print(f"Episode {episode + 1}: Total cost = {total_cost}")
