@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import time
+import math
 import random
 
 # Define the environment size
@@ -11,7 +12,7 @@ OBSTACLE_COST = 1000
 GOAL_COST = 0
 
 # Define the number of episodes
-NUM_EPISODES = 10000
+NUM_EPISODES = 100000
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -122,7 +123,7 @@ for episode in range(NUM_EPISODES):
     total_cost = 0
     
     for step in range(MAX_STEPS):
-        epsilon = (1 / (episode + 1))  # Decrease exploration rate over time
+        epsilon = (1 / math.sqrt((episode + 1)))  # Decrease exploration rate over time
         
         action = choose_action(state, epsilon, q_table)
 
@@ -293,8 +294,8 @@ with np.printoptions(threshold=np.inf):
 # for position in path_back:
 #     print(position)
 
-q_table = np.ma.masked_greater(q_table, 40)
-q_table_back = np.ma.masked_greater(q_table_back, 40)
+q_table = np.ma.masked_greater(q_table, 50)
+q_table_back = np.ma.masked_greater(q_table_back, 50)
 
 q_values = np.reshape(q_table[:256], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values = np.min(q_values, axis=2)
