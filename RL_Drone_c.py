@@ -11,7 +11,7 @@ OBSTACLE_COST = 1000
 GOAL_COST = 0
 
 # Define the number of episodes
-NUM_EPISODES = 1000
+NUM_EPISODES = 10000
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -292,6 +292,9 @@ with np.printoptions(threshold=np.inf):
 # print("Optimal Path back:")
 # for position in path_back:
 #     print(position)
+
+q_table = np.ma.masked_greater(q_table, 40)
+q_table_back = np.ma.masked_greater(q_table_back, 40)
 
 q_values = np.reshape(q_table[:256], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values = np.min(q_values, axis=2)
