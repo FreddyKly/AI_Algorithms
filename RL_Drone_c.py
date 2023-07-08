@@ -11,7 +11,7 @@ OBSTACLE_COST = 1000
 GOAL_COST = 0
 
 # Define the number of episodes
-NUM_EPISODES = 1000
+NUM_EPISODES = 10000
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -24,29 +24,30 @@ GOAL_STATE = (13, 11, 0)
 
 # Define the obstacle positions
 OBSTACLES = []
-for i in range(16):
-    # Left and right row
-    OBSTACLES.append((0, i))
-    OBSTACLES.append((15, i))
-for i in range(1, 15):
-    # Top and bottom row
-    OBSTACLES.append((i, 0))
-    OBSTACLES.append((i, 15))
-for i in range(7, 15):
-    # Bottom rectangle from (7, 13) til (14, 14)
-    OBSTACLES.append((i, 13))
-    OBSTACLES.append((i, 14))
-for i in range(7, 11):
-    # mid rectangle from (7, 8) til (10, 12)
-    OBSTACLES.append((i, 12))
-    OBSTACLES.append((i, 11))
-    OBSTACLES.append((i, 10))
-    OBSTACLES.append((i, 9))
-    OBSTACLES.append((i, 8))
-for i in range (7, 10):
-    # Top rectangle from (7, 6) til (9, 7)
-    OBSTACLES.append((i, 7))
-    OBSTACLES.append((i, 6))
+for j in range(2):
+    for i in range(16):
+        # Left and right row
+        OBSTACLES.append((0, i, j))
+        OBSTACLES.append((15, i, j))
+    for i in range(1, 15):
+        # Top and bottom row
+        OBSTACLES.append((i, 0, j))
+        OBSTACLES.append((i, 15, j))
+    for i in range(7, 15):
+        # Bottom rectangle from (7, 13) til (14, 14)
+        OBSTACLES.append((i, 13, j))
+        OBSTACLES.append((i, 14, j))
+    for i in range(7, 11):
+        # mid rectangle from (7, 8) til (10, 12)
+        OBSTACLES.append((i, 12, j))
+        OBSTACLES.append((i, 11, j))
+        OBSTACLES.append((i, 10, j))
+        OBSTACLES.append((i, 9, j))
+        OBSTACLES.append((i, 8, j))
+    for i in range (7, 10):
+        # Top rectangle from (7, 6) til (9, 7)
+        OBSTACLES.append((i, 7, j))
+        OBSTACLES.append((i, 6, j))
     
 
 # Define the possible actions
@@ -153,6 +154,7 @@ def animate_q_values(q_table_loc, way_idx):
 
 # plt.ion()
 fig, ax = plt.subplots(2, 1, figsize=(12, 9))
+fig2, ax2 = plt.subplots(2, 1, figsize=(12, 9))
 # animate_q_values(q_table, 1)
 
 # Run Q-learning algorithm
@@ -378,6 +380,62 @@ table_back = ax[1].table(cellText=np.round(min_q_values_back, 2),
 
 ax[1].axis('off')
 fig.suptitle('Minimum Q-values')
+start_x = 4
+# For whatever reason this has to be +1
+start_y = 13
+goal_x = 13
+# For whatever reason this has to be +1
+goal_y = 12
+start_cell = table_back[start_y, start_x]
+goal_cell = table_back[goal_y, goal_x]
+# for cell in path_back:
+#     table_back[cell[1] +1, cell[0]].set_facecolor("green")
+start_cell.set_facecolor("lightblue")
+goal_cell.set_facecolor("lightblue")
+
+q_values_back = np.reshape(q_table_back[256:], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+min_q_values_back = np.min(q_values_back, axis=2)
+
+norm_back = plt.Normalize(np.round(min_q_values_back, 2).min()-10, np.round(min_q_values_back, 2).max()+1)
+colours_back = plt.cm.hot(norm_back(np.round(min_q_values_back, 2)))
+
+table_back = ax2[1].table(cellText=np.round(min_q_values_back, 2),
+                cellLoc='center',
+                loc='center',
+                colLabels=[str(i) for i in range(GRID_SIZE)],
+                rowLabels=[str(i) for i in range(GRID_SIZE)],
+                cellColours=colours_back)
+
+ax2[1].axis('off')
+fig2.suptitle('Minimum Q-values')
+start_x = 4
+# For whatever reason this has to be +1
+start_y = 13
+goal_x = 13
+# For whatever reason this has to be +1
+goal_y = 12
+start_cell = table_back[start_y, start_x]
+goal_cell = table_back[goal_y, goal_x]
+# for cell in path_back:
+#     table_back[cell[1] +1, cell[0]].set_facecolor("green")
+start_cell.set_facecolor("lightblue")
+goal_cell.set_facecolor("lightblue")
+
+q_values_back = np.reshape(q_table_back[256:], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
+min_q_values_back = np.min(q_values_back, axis=2)
+
+norm_back = plt.Normalize(np.round(min_q_values_back, 2).min()-10, np.round(min_q_values_back, 2).max()+1)
+colours_back = plt.cm.hot(norm_back(np.round(min_q_values_back, 2)))
+
+table_back = ax2[0].table(cellText=np.round(min_q_values_back, 2),
+                cellLoc='center',
+                loc='center',
+                colLabels=[str(i) for i in range(GRID_SIZE)],
+                rowLabels=[str(i) for i in range(GRID_SIZE)],
+                cellColours=colours_back)
+
+ax2[0].axis('off')
+fig2.suptitle('Minimum Q-values H')
 start_x = 4
 # For whatever reason this has to be +1
 start_y = 13
