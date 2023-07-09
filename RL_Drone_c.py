@@ -87,7 +87,7 @@ def update_q_table(state, action, cost, next_state, q_table_loc, update_counts_l
     # Update learning rate
     update_counts_loc[idx_state][idx_action] += 1
     # learning_rate = 1 / math.log2(update_counts[idx_state][idx_action] + 1)
-    learning_rate = 0.2 # Wegen deterministischer Umgebung?
+    learning_rate = 0.3 # Wegen deterministischer Umgebung?
 
     new_q_value = (1 - learning_rate) * current_q + learning_rate * (cost + min_next_q)
     # Assign new q-value
@@ -185,6 +185,8 @@ for episode in range(NUM_EPISODES):
             # Agent has reached the goal, update Q-values for returning to the start
             for _ in range(MAX_STEPS):
                 action = choose_action(state, epsilon, q_table_back)
+
+                air_layer_coef = state[2] + 1
                 
                 if action == 'N':
                     next_state = (state[0], state[1] - 1 * air_layer_coef, state[2]) if (state[1] >= 1 * air_layer_coef) else state
@@ -251,52 +253,76 @@ with np.printoptions(threshold=np.inf):
 
 
 # Evaluate the learned policy
-# state = START_POSITION
-# path = [state]
-# while state != GOAL_STATE:
-#     idx_state = map_state_to_index(state)
-#     action = ACTIONS[np.argmin(q_table[idx_state])]
-#     current_state = q_table[idx_state],
-#     print(q_table[idx_state], "chosen: ", q_table[idx_state][np.argmin(q_table[idx_state])])
-    
-#     if action == 'N':
-#         next_state = (state[0], state[1] - 1) if state[1] > 0 else state
-#     elif action == 'S':
-#         next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
-#     elif action == 'W':
-#         next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
-#     elif action == 'O':
-#         next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
-    
-#     state = next_state
-#     path.append(state)
+state = START_POSITION
+path = [state]
+while state != GOAL_STATE:
+    idx_state = map_state_to_index(state)
+    action = ACTIONS[np.argmin(q_table[idx_state])]
+    current_state = q_table[idx_state],
+    print(q_table[idx_state], "chosen: ", q_table[idx_state][np.argmin(q_table[idx_state])])
 
-# path_back = [state]
-# while state != START_POSITION:
-#     idx_state = map_state_to_index(state)
-#     action = ACTIONS[np.argmin(q_table_back[idx_state])]
+    air_layer_coef = state[2] + 1
     
-#     if action == 'N':
-#         next_state = (state[0], state[1] - 1) if state[1] > 0 else state
-#     elif action == 'S':
-#         next_state = (state[0], state[1] + 1) if state[1] < GRID_SIZE - 1 else state
-#     elif action == 'W':
-#         next_state = (state[0] - 1, state[1]) if state[0] > 0 else state
-#     elif action == 'O':
-#         next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
+    if action == 'N':
+        next_state = (state[0], state[1] - 1 * air_layer_coef, state[2]) if (state[1] >= 1 * air_layer_coef) else state
+    elif action == 'S':
+        next_state = (state[0], state[1] + 1 * air_layer_coef, state[2]) if (state[1] < GRID_SIZE - 1 * air_layer_coef) else state
+    elif action == 'W':
+        next_state = (state[0] - 1 * air_layer_coef, state[1], state[2]) if (state[0] >= 1 * air_layer_coef) else state
+    elif action == 'O':
+        next_state = (state[0] + 1 * air_layer_coef, state[1], state[2]) if (state[0] < GRID_SIZE - 1 * air_layer_coef) else state
+    elif action == 'H':
+        next_state = (state[0], state[1], state[2] + 1) if state[2] == 0 else state
+    elif action == 'R':
+        next_state = (state[0], state[1], state[2] - 1) if state[2] == 1 else state
+
+    if state == next_state:
+        path.append(next_state)
+        break
+
+    state = next_state
+    path.append(state)
+
+state = GOAL_STATE
+path_back = [state]
+while state != START_POSITION:
+    idx_state = map_state_to_index(state)
+    action = ACTIONS[np.argmin(q_table_back[idx_state])]
     
-#     state = next_state
-#     path_back.append(state)
+    air_layer_coef = state[2] + 1
+    
+    if action == 'N':
+        next_state = (state[0], state[1] - 1 * air_layer_coef, state[2]) if (state[1] >= 1 * air_layer_coef) else state
+    elif action == 'S':
+        next_state = (state[0], state[1] + 1 * air_layer_coef, state[2]) if (state[1] < GRID_SIZE - 1 * air_layer_coef) else state
+    elif action == 'W':
+        next_state = (state[0] - 1 * air_layer_coef, state[1], state[2]) if (state[0] >= 1 * air_layer_coef) else state
+    elif action == 'O':
+        next_state = (state[0] + 1 * air_layer_coef, state[1], state[2]) if (state[0] < GRID_SIZE - 1 * air_layer_coef) else state
+    elif action == 'H':
+        next_state = (state[0], state[1], state[2] + 1) if state[2] == 0 else state
+    elif action == 'R':
+        next_state = (state[0], state[1], state[2] - 1) if state[2] == 1 else state
 
-# # Print the optimal path
-# print("Optimal Path:")
-# for position in path:
-#     print(position)
+    if state == next_state:
+        path_back.append(next_state)
+        break
+    
+    state = next_state
+    path_back.append(state)
 
-# print("Optimal Path back:")
-# for position in path_back:
-#     print(position)
+# Print the optimal path
+print("Optimal Path:")
+for position in path:
+    print(position)
 
+print("Optimal Path back:")
+for position in path_back:
+    print(position)
+
+"""
+Hinweg R
+"""
 q_table = np.ma.masked_greater(q_table, 50)
 q_table_back = np.ma.masked_greater(q_table_back, 50)
 
@@ -315,7 +341,8 @@ table = ax[0].table(cellText=np.round(min_q_values, 2),
                 )
 
 ax[0].axis('off')
-fig.suptitle('Minimum Q-values')
+fig.suptitle('Minimum Q-values R')
+ax[0].set_title('Hinweg')
 start_x = 4
 # For whatever reason this has to be +1
 start_y = 13
@@ -324,13 +351,20 @@ goal_x = 13
 goal_y = 12
 start_cell = table[start_y, start_x]
 goal_cell = table[goal_y, goal_x]
-# for cell in path:
-#     table[cell[1] +1, cell[0]].set_facecolor("green")
-start_cell.set_facecolor("lightblue")
-goal_cell.set_facecolor("lightblue")
+for cell in path:
+    if cell[2] == 0:
+        table[cell[1] +1, cell[0]].set_facecolor("green")
+# start_cell.set_facecolor("lightblue")
+# goal_cell.set_facecolor("lightblue")
+start_cell.set_edgecolor("purple")
+goal_cell.set_edgecolor("purple")
+start_cell.set_linewidth(3)
+goal_cell.set_linewidth(3)
 
 
-
+"""
+Rückweg R
+"""
 q_values_back = np.reshape(q_table_back[:256], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values_back = np.min(q_values_back, axis=2)
 
@@ -345,7 +379,7 @@ table_back = ax[1].table(cellText=np.round(min_q_values_back, 2),
                 cellColours=colours_back)
 
 ax[1].axis('off')
-fig.suptitle('Minimum Q-values')
+ax[1].set_title('Rückweg')
 start_x = 4
 # For whatever reason this has to be +1
 start_y = 13
@@ -354,14 +388,21 @@ goal_x = 13
 goal_y = 12
 start_cell = table_back[start_y, start_x]
 goal_cell = table_back[goal_y, goal_x]
-# for cell in path_back:
-#     table_back[cell[1] +1, cell[0]].set_facecolor("green")
-start_cell.set_facecolor("lightblue")
-goal_cell.set_facecolor("lightblue")
+for cell in path_back:
+    if cell[2] == 0:
+        table_back[cell[1] +1, cell[0]].set_facecolor("green")
+# start_cell.set_facecolor("lightblue")
+# goal_cell.set_facecolor("lightblue")
+start_cell.set_edgecolor("purple")
+goal_cell.set_edgecolor("purple")
+start_cell.set_linewidth(3)
+goal_cell.set_linewidth(3)
 
 
 
-
+"""
+Hinweg H
+"""
 q_values_H = np.reshape(q_table[256:], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values_H = np.min(q_values_H, axis=2)
 
@@ -376,7 +417,8 @@ table_H = ax2[0].table(cellText=np.round(min_q_values_H, 2),
                 cellColours=colours_H)
 
 ax2[0].axis('off')
-fig2.suptitle('Minimum Q-values')
+fig2.suptitle('Minimum Q-values H')
+ax2[0].set_title('Hinweg')
 start_x = 4
 # For whatever reason this has to be +1
 start_y = 13
@@ -385,13 +427,20 @@ goal_x = 13
 goal_y = 12
 start_cell = table_H[start_y, start_x]
 goal_cell = table_H[goal_y, goal_x]
-# for cell in path_back:
-#     table_back[cell[1] +1, cell[0]].set_facecolor("green")
-start_cell.set_facecolor("lightblue")
-goal_cell.set_facecolor("lightblue")
+for cell in path:
+    if cell[2] == 1:
+        table_H[cell[1] +1, cell[0]].set_facecolor("green")
+# start_cell.set_facecolor("lightblue")
+# goal_cell.set_facecolor("lightblue")
+start_cell.set_edgecolor("purple")
+goal_cell.set_edgecolor("purple")
+start_cell.set_linewidth(3)
+goal_cell.set_linewidth(3)
 
 
-
+"""
+Rückweg H
+"""
 q_values_back_H = np.reshape(q_table_back[256:], (GRID_SIZE, GRID_SIZE, len(ACTIONS)))
 min_q_values_back_H = np.min(q_values_back_H, axis=2)
 
@@ -406,7 +455,7 @@ table_back_H = ax2[1].table(cellText=np.round(min_q_values_back_H, 2),
                 cellColours=colours_back_H)
 
 ax2[1].axis('off')
-fig2.suptitle('Minimum Q-values H')
+ax2[1].set_title('Rückweg')
 start_x = 4
 # For whatever reason this has to be +1
 start_y = 13
@@ -415,10 +464,15 @@ goal_x = 13
 goal_y = 12
 start_cell = table_back_H[start_y, start_x]
 goal_cell = table_back_H[goal_y, goal_x]
-# for cell in path_back:
-#     table_back[cell[1] +1, cell[0]].set_facecolor("green")
-start_cell.set_facecolor("lightblue")
-goal_cell.set_facecolor("lightblue")
+for cell in path_back:
+    if cell[2] == 1:
+        table_back_H[cell[1] +1, cell[0]].set_facecolor("green")
+# start_cell.set_facecolor("lightblue")
+# goal_cell.set_facecolor("lightblue")
+start_cell.set_edgecolor("purple")
+goal_cell.set_edgecolor("purple")
+start_cell.set_linewidth(3)
+goal_cell.set_linewidth(3)
 
 plt.draw()
 plt.show()
