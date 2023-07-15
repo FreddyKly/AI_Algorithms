@@ -316,6 +316,7 @@ table = ax[0].table(cellText=np.round(min_q_values, 2),
                 cellColours=colours)
 
 ax[0].axis('off')
+ax[0].set_title('Hinweg')
 fig.suptitle('Minimum Q-values')
 start_x = 4
 # For whatever reason this has to be +1
@@ -346,6 +347,7 @@ table_back = ax[1].table(cellText=np.round(min_q_values_back, 2),
                 cellColours=colours_back)
 
 ax[1].axis('off')
+ax[1].set_title('Rückweg')
 fig.suptitle('Minimum Q-values')
 start_x = 4
 # For whatever reason this has to be +1
