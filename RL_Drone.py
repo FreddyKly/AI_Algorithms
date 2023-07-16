@@ -84,8 +84,8 @@ def update_q_table(state, action, cost, next_state, q_table_loc, update_counts_l
 
     # Update learning rate
     update_counts_loc[idx_state][idx_action] += 1
-    # learning_rate = 1 / update_counts[idx_state][idx_action]
-    learning_rate = 0.4 # Wegen deterministischer Umgebung?
+    learning_rate = 1 / (update_counts[idx_state][idx_action] + 1) ** (10/19)
+    # learning_rate = 0.4 # Wegen deterministischer Umgebung?
 
     new_q_value = (1 - learning_rate) * current_q + learning_rate * (cost + min_next_q)
     # Assign new q-value
@@ -155,7 +155,7 @@ def animate_q_values(q_table_loc, way_idx):
 
 # plt.ion()
 fig, ax = plt.subplots(2, 1, figsize=(12, 9))
-prev_q_table_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
+prev_q_table = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
 prev_q_table_back = np.zeros((GRID_SIZE * GRID_SIZE, len(ACTIONS)))
 # animate_q_values(q_table, 1)
 convCounter = 0
@@ -273,6 +273,10 @@ while state != GOAL_STATE:
     elif action == 'O':
         next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
     
+    if next_state in path:
+        path.append(next_state)
+        break
+
     state = next_state
     path.append(state)
 
@@ -290,6 +294,10 @@ while state != START_POSITION:
     elif action == 'O':
         next_state = (state[0] + 1, state[1]) if state[0] < GRID_SIZE - 1 else state
     
+    if next_state in path_back:
+        path_back.append(next_state)
+        break
+
     state = next_state
     path_back.append(state)
 

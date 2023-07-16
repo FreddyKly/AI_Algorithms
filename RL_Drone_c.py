@@ -12,7 +12,7 @@ OBSTACLE_COST = 1000
 GOAL_COST = 0
 
 # Define the number of episodes
-NUM_EPISODES = 10000
+NUM_EPISODES = 160000
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -86,8 +86,8 @@ def update_q_table(state, action, cost, next_state, q_table_loc, update_counts_l
 
     # Update learning rate
     update_counts_loc[idx_state][idx_action] += 1
-    # learning_rate = 1 / math.log2(update_counts[idx_state][idx_action] + 1)
-    learning_rate = 0.3 # Wegen deterministischer Umgebung?
+    learning_rate = 1 / (update_counts[idx_state][idx_action] + 1) ** (10/19)
+    # learning_rate = 0.3 # Wegen deterministischer Umgebung?
 
     new_q_value = (1 - learning_rate) * current_q + learning_rate * (cost + min_next_q)
     # Assign new q-value
@@ -101,7 +101,7 @@ def map_state_to_index(state):
     return index
 
 def is_converged(q_values, prev_q_values):
-    threshold = 0.001
+    threshold = 0.2
     max_diff = 0.0000
     for idx_state in range(len(q_values)):
         for idx_action in range(len(q_values[idx_state])):
@@ -110,6 +110,7 @@ def is_converged(q_values, prev_q_values):
                 max_diff = diff
     if max_diff < threshold:
         pass
+    print(max_diff)
 
     return max_diff < threshold
 
@@ -119,6 +120,7 @@ fig, ax = plt.subplots(2, 1, figsize=(12, 9))
 fig2, ax2 = plt.subplots(2, 1, figsize=(12, 9))
 prev_q_table_back = np.zeros((GRID_SIZE * GRID_SIZE * 2, len(ACTIONS)))
 # animate_q_values(q_table, 1)
+convCounter = 0
 
 # Run Q-learning algorithm
 for episode in range(NUM_EPISODES):
@@ -244,12 +246,14 @@ for episode in range(NUM_EPISODES):
     # animate_q_values(q_table_back, 2)
 
     if(is_converged(q_table, prev_q_table) and is_converged(q_table_back, prev_q_table_back)):
-        break
+        convCounter += 1
+        if convCounter >= 10:
+            break
+    else:
+        convCounter = 0
 
     # Print the total cost for the episode
     print(f"Episode {episode + 1}: Total cost = {total_cost}")
-with np.printoptions(threshold=np.inf):
-    print(q_table)
 
 
 # Evaluate the learned policy
@@ -276,7 +280,7 @@ while state != GOAL_STATE:
     elif action == 'R':
         next_state = (state[0], state[1], state[2] - 1) if state[2] == 1 else state
 
-    if state == next_state:
+    if next_state in path:
         path.append(next_state)
         break
 
@@ -304,7 +308,7 @@ while state != START_POSITION:
     elif action == 'R':
         next_state = (state[0], state[1], state[2] - 1) if state[2] == 1 else state
 
-    if state == next_state:
+    if next_state in path_back:
         path_back.append(next_state)
         break
     
@@ -341,8 +345,8 @@ table = ax[0].table(cellText=np.round(min_q_values, 2),
                 )
 
 ax[0].axis('off')
-fig.suptitle('Minimum Q-values R')
-ax[0].set_title('Hinweg')
+fig.suptitle('Minimum Q-values')
+ax[0].set_title('Hinweg R')
 start_x = 4
 # For whatever reason this has to be +1
 start_y = 13
@@ -371,15 +375,15 @@ min_q_values_back = np.min(q_values_back, axis=2)
 norm_back = plt.Normalize(np.round(min_q_values_back, 2).min()-10, np.round(min_q_values_back, 2).max()+1)
 colours_back = plt.cm.hot(norm_back(np.round(min_q_values_back, 2)))
 
-table_back = ax[1].table(cellText=np.round(min_q_values_back, 2),
+table_back = ax2[0].table(cellText=np.round(min_q_values_back, 2),
                 cellLoc='center',
                 loc='center',
                 colLabels=[str(i) for i in range(GRID_SIZE)],
                 rowLabels=[str(i) for i in range(GRID_SIZE)],
                 cellColours=colours_back)
 
-ax[1].axis('off')
-ax[1].set_title('Rückweg')
+ax2[0].axis('off')
+ax2[0].set_title('Rückweg R')
 start_x = 4
 # For whatever reason this has to be +1
 start_y = 13
@@ -409,16 +413,16 @@ min_q_values_H = np.min(q_values_H, axis=2)
 norm_H = plt.Normalize(np.round(min_q_values_H, 2).min()-10, np.round(min_q_values_H, 2).max()+1)
 colours_H = plt.cm.hot(norm_H(np.round(min_q_values_H, 2)))
 
-table_H = ax2[0].table(cellText=np.round(min_q_values_H, 2),
+table_H = ax[1].table(cellText=np.round(min_q_values_H, 2),
                 cellLoc='center',
                 loc='center',
                 colLabels=[str(i) for i in range(GRID_SIZE)],
                 rowLabels=[str(i) for i in range(GRID_SIZE)],
                 cellColours=colours_H)
 
-ax2[0].axis('off')
-fig2.suptitle('Minimum Q-values H')
-ax2[0].set_title('Hinweg')
+ax[1].axis('off')
+fig2.suptitle('Minimum Q-values')
+ax[1].set_title('Hinweg H')
 start_x = 4
 # For whatever reason this has to be +1
 start_y = 13
@@ -455,7 +459,7 @@ table_back_H = ax2[1].table(cellText=np.round(min_q_values_back_H, 2),
                 cellColours=colours_back_H)
 
 ax2[1].axis('off')
-ax2[1].set_title('Rückweg')
+ax2[1].set_title('Rückweg H')
 start_x = 4
 # For whatever reason this has to be +1
 start_y = 13
