@@ -12,7 +12,7 @@ OBSTACLE_COST = 1000
 GOAL_COST = 0
 
 # Define the number of episodes
-NUM_EPISODES = 300000
+NUM_EPISODES = 30000
 
 # Define the maximum number of steps per episode
 MAX_STEPS = 100
@@ -340,6 +340,9 @@ for position in path:
 print("Optimal Path back:")
 for position in path_back:
     print(position)
+
+print(map_state_to_index((7, 5)))
+print("hello")
 
 q_table = np.ma.masked_greater(q_table, 50)
 q_table_back = np.ma.masked_greater(q_table_back, 50)
